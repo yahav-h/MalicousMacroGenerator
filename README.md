@@ -10,7 +10,7 @@ Requirement Python 2.7 and above
 ## Usage:
 Malicious Macro Generator
 
-Usage: MMG.py [config] [output] (optional parameters)
+Usage: MaliciousMacroGenerator.py [config] [output] (optional parameters)
 
         [config]                                Config file that contain generator information
         [output]                                Output filename for the macro

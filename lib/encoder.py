@@ -22,28 +22,31 @@ class Encoder:
         self.default += vars
         return self
 
-    def encode_buffer(self, buffer):
+    def encode_buffer(self, buffer, reverse=False):
         output = ""
         for c in buffer:
-            output += chr(ord(c) + int(self.offset))
-        return output
+            if reverse:
+                output += chr(ord(c) + int(self.offset))
+            else:
+                output += chr(ord(chr(c)) + int(self.offset))
+        return output.encode()
 
     def encode_user_vars(self, buffer):
-        for var in re.findall("{\[.*?\]}", buffer):
+        for var in re.findall(b"{\[.*?\]}", buffer):
             buffer = buffer.replace(var, self.encode_buffer(self.remove_encode_tag(var)))
         return buffer
 
     def append_def_use_tag(self, buffer):
-        for var in re.findall("\[use:.*?\]", buffer):
-            buffer = buffer.replace(var, "")
+        for var in re.findall(b"\[use:.*?\]", buffer):
+            buffer = buffer.replace(var, b"")
             self.default.append(self.remove_def_use_tag(var))
         return buffer
 
     def remove_encode_tag(self, buffer):
-        return buffer.replace("{[", "").replace("]}", "")
+        return buffer.replace(b"{[", b"").replace(b"]}", b"")
 
     def remove_def_use_tag(self, buffer):
-        return buffer.replace("[use:", "").replace("]", "")
+        return buffer.replace(b"[use:", b"").replace(b"]", b"")
 
     def rand_vars(self, buffer):
         iterator = self.helper.GetConfig("varcount")
@@ -52,10 +55,12 @@ class Encoder:
             count += 1
 
             for i in reversed(range(1, iterator)):
-                buffer = buffer.replace(var + str(i), self.gen_str(random.randrange(5, 25)))
+                if not isinstance(var, bytes):
+                    var = var.encode()
+                buffer = buffer.replace(var + str(i).encode(), self.gen_str(random.randrange(5, 25)).encode())
 
             if count > self.default_size:
-                buffer = buffer.replace(var, self.gen_str(random.randrange(5, 25)))
+                buffer = buffer.replace(var, self.gen_str(random.randrange(5, 25)).encode())
 
         return buffer
 
@@ -64,14 +69,14 @@ class Encoder:
 
     def rand_int(self, buffer):
         current = self.__rand_int(buffer, "int", 2, 5)
-        if current < 100:
+        if len(current) < 100:
             self.rand_int(self, buffer)
         return current
 
     def __rand_int(self, buffer, var, min, max):
         iterator = self.helper.GetConfig("varcount")
         for i in reversed(range(1, iterator)):
-            buffer = buffer.replace("[" + var + str(i) + "]", self.gen_int(random.randrange(min, max)))
+            buffer = buffer.replace(("[" + var + str(i) + "]").encode(), self.gen_int(random.randrange(min, max)))
         return buffer
 
     def gen_str(self, size):
@@ -79,21 +84,21 @@ class Encoder:
             random.SystemRandom().choice(string.ascii_uppercase + string.ascii_lowercase) for _ in range(size))
 
     def gen_int(self, size):
-        return ''.join(random.SystemRandom().choice(string.digits) for _ in range(size))
+        return (''.join(random.SystemRandom().choice(string.digits) for _ in range(size))).encode()
 
     def replace_var(self, buffer, var, data, encode=False):
         if encode:
             data = self.encode_buffer(data)
-        return buffer.replace("[" + var + "]", str(data))
+        return buffer.replace(("[" + var + "]").encode(), str(data).encode())
 
     def chunk_payload(self, buffer, payload):
-        payload = self.encode_buffer(payload)
+        payload = self.encode_buffer(payload, reverse=True)
         chunksize = int(self.helper.GetConfig("chunksize"))
-        vars = "Dim " + self.gen_str(random.randrange(5, 20)) + " As String\r\n"
+        vars = ("Dim " + self.gen_str(random.randrange(5, 20)) + " As String\r\n").encode()
         args = ""
         size = 0
 
-        for chunk in re.findall("." * chunksize, payload):
+        for chunk in re.findall(b"." * chunksize, payload):
             current_var = self.gen_str(random.randrange(5, 20))
             vars += "\tDim " + current_var + " As String\r\n"
             vars += "\t" + current_var + " = \"" + chunk + "\"\r\n"
@@ -102,14 +107,14 @@ class Encoder:
             size += chunksize
 
         if len(payload) > size:
-            current_var = self.gen_str(random.randrange(5, 20))
-            vars += "\tDim " + current_var + " As String\r\n"
-            vars += "\t" + current_var + " = \"" + payload[(len(payload) - size) * -1:] + "\"\r\n"
-            args += current_var
+            current_var = self.gen_str(random.randrange(5, 20)).encode()
+            vars += b"\tDim " + current_var + b" As String\r\n"
+            vars += b"\t" + current_var + b" = \"" + payload[(len(payload) - size) * -1:] + b"\"\r\n"
+            args += current_var.decode()
         else:
             args = args[:-3]
 
-        return buffer.replace("[payload]", vars).replace("[payload_args]", args)
+        return buffer.replace(b"[payload]", vars).replace(b"[payload_args]", args.encode())
 
     def split_strings(self, buffer):
         for detected_str in re.findall(r'"(.+?)"', buffer):

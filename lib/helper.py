@@ -35,7 +35,7 @@ class Helper:
         print("\n\t-x\t--strings_to_hex\t\tEncode strings to hex" % self.argv[0])
 
     def Banner(self):
-        print("MMG.Malicious Macro Generator v%s - RingZer0 Team\nAuthor: Mr.Un1k0d3r mr.un1k0d3r@gmail.com\n" % Helper.VERSION)
+        print("MaliciousMacroGenerator.Malicious Macro Generator v%s \nAuthor: T0x1cEnv31ope toxicenvelope@protonmail.com\n" % Helper.VERSION)
 
     def ProcessCompleted(self):
         self.PrintSuccess("Generation completed.")
@@ -59,7 +59,7 @@ class Helper:
         return self
 
     def GetConfig(self, key):
-        if self.config.get(key):
+        if key in self.config:
             return self.config[key]
         else:
             self.ExitShowError("\"%s\" key not found in the config file." % key)
@@ -78,7 +78,7 @@ class Helper:
 
     def SaveFile(self, filename, buffer):
         try:
-            open(filename, "wb").write(buffer)
+            open(f"outputs/{filename}", "wb").write(buffer)
         except:
             self.ExitShowError("Failed to save \"%s\"." % filename)
         self.PrintSuccess("\"%s\" successfully saved to the disk." % filename)

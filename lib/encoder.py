@@ -11,9 +11,9 @@ class Encoder:
         self.default = ["var", "func", "data", "bool"]
         self.default_size = len(self.default)
         try:
-            self.offset = int(helper.GetConfig("encodingoffset"))
+            self.offset = int(helper.get_config("encodingoffset"))
         except:
-            helper.ExitShowError("\"%s\" is not a valid encodingoffset value." % self.offset)
+            helper.exit_show_error("\"%s\" is not a valid encodingoffset value." % self.offset)
 
     def get_encoding_offset(self):
         return self.offset
@@ -49,7 +49,7 @@ class Encoder:
         return buffer.replace(b"[use:", b"").replace(b"]", b"")
 
     def rand_vars(self, buffer):
-        iterator = self.helper.GetConfig("varcount")
+        iterator = self.helper.get_config("varcount")
         count = 0
         for var in self.default:
             count += 1
@@ -74,7 +74,7 @@ class Encoder:
         return current
 
     def __rand_int(self, buffer, var, min, max):
-        iterator = self.helper.GetConfig("varcount")
+        iterator = self.helper.get_config("varcount")
         for i in reversed(range(1, iterator)):
             buffer = buffer.replace(("[" + var + str(i) + "]").encode(), self.gen_int(random.randrange(min, max)))
         return buffer
@@ -93,7 +93,7 @@ class Encoder:
 
     def chunk_payload(self, buffer, payload):
         payload = self.encode_buffer(payload, reverse=True)
-        chunksize = int(self.helper.GetConfig("chunksize"))
+        chunksize = int(self.helper.get_config("chunksize"))
         vars = ("Dim " + self.gen_str(random.randrange(5, 20)) + " As String\r\n").encode()
         args = ""
         size = 0

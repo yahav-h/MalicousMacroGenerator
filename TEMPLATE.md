@@ -5,7 +5,7 @@ At the moment the engine support the following keyword `var, func, data, cond, i
 
 The engine also support following variables `[int], [smallint]`.
 
-This mean that everytime one of these keyword is found it will be replace with random value.
+This mean that everytime one of these keyword is found it will be replaced with random value.
 
 ```
 Function func1(var1 As String) As String
@@ -55,7 +55,7 @@ Function myfunction(var1 As String) As String
 End Function
 ```
 
-Once it will be parsed by the Python script the variable will be replace by the value defined in the config file
+Once it will be parsed by the Python script the variable will be replaced by the value defined in the config file
 
 ```
 {
